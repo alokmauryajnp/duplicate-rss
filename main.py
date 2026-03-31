@@ -59,3 +59,7 @@ def deduplicate_batch(payload: Payload):
         "unique_count": len(unique_articles),
         "unique_articles": unique_articles
     }
+
+@app.get("/")
+def health_check():
+    return {"status": "API is alive!", "message": "Send a POST request to /deduplicate"}
