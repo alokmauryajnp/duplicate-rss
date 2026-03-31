@@ -8,7 +8,6 @@ app = FastAPI(title="News RSS Deduplicator")
 
 class Article(BaseModel):
     title: str
-    content: Optional[str] = ""
     contentSnippet: Optional[str] = ""
     link: Optional[str] = ""
     source: Optional[str] = ""
@@ -22,7 +21,7 @@ def deduplicate_batch(payload: Payload):
     if not payload.articles:
         return {"unique_articles": []}
 
-    # --- STEP 1: URL-based exact duplicate removal first ---
+    # --- STEP 1: URL-based exact duplicate removal ---
     seen_links = set()
     url_filtered = []
     for article in payload.articles:
@@ -41,9 +40,8 @@ def deduplicate_batch(payload: Payload):
         }
 
     # --- STEP 2: Semantic deduplication via TF-IDF ---
-    # Prefer contentSnippet for matching (clean text), fall back to content
     texts = [
-        f"{a.title} {(a.contentSnippet or a.content or '').strip()}"
+        f"{a.title} {(a.contentSnippet or '').strip()}"
         for a in url_filtered
     ]
 
@@ -51,7 +49,6 @@ def deduplicate_batch(payload: Payload):
     try:
         tfidf_matrix = vectorizer.fit_transform(texts)
     except ValueError:
-        # All texts were empty or only stop words — return url-filtered result
         return {
             "original_count": len(payload.articles),
             "unique_count": len(url_filtered),
