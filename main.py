@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Optional
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -8,9 +8,11 @@ app = FastAPI(title="News RSS Deduplicator")
 
 class Article(BaseModel):
     title: str
-    contentSnippet: Optional[str] = ""
+    contentSnippet: Optional[str] = Field(default="", alias="content snippet")
     link: Optional[str] = ""
     source: Optional[str] = ""
+
+    model_config = {"populate_by_name": True}
 
 class Payload(BaseModel):
     articles: List[Article]
